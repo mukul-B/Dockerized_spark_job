@@ -4,7 +4,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType, StructField, DoubleType, IntegerType
 
 spark = SparkSession.builder.master("local[1]") \
-    .appName("SparkByExamples.com") \
+    .appName("cch2") \
     .getOrCreate()
 
 SCHEMA = StructType([StructField('fixed acidity', DoubleType()),
