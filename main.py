@@ -1,7 +1,11 @@
 from pyspark.ml.feature import FeatureHasher
 from pyspark.ml.regression import LinearRegression
+from pyspark.ml.regression import RandomForestRegressor
 from pyspark.sql import SparkSession
+from pyspark.sql.functions import round
 from pyspark.sql.types import StructType, StructField, DoubleType, IntegerType
+from pyspark.ml.evaluation import MulticlassClassificationEvaluator
+
 
 spark = SparkSession.builder.master("local[1]") \
     .appName("cch2") \
@@ -29,12 +33,24 @@ featurized = hasher.transform(data)
 # featurized.show(truncate=False)
 train, test = featurized.randomSplit([0.8, 0.2], seed=12345)
 
-lr = LinearRegression(maxIter=10, regParam=0.3, elasticNetParam=0.8).setLabelCol("quality")
-
-# Fit the model
+lr = LinearRegression(maxIter=20, regParam=0.3, elasticNetParam=0.8).setLabelCol("quality")
 lrModel = lr.fit(train)
-print("Coefficients: %s" % str(lrModel.coefficients))
-print("Intercept: %s" % str(lrModel.intercept))
+
+# lr = RandomForestRegressor(numTrees=2, maxDepth=2)
+# lrModel = lr.fit(train)
+
+# print("Coefficients: %s" % str(lrModel.coefficients))
+# print("Intercept: %s" % str(lrModel.intercept))
 
 predictions = lrModel.transform(test)
-predictions.select("prediction", "quality").show(5)
+predictionAndLabels=predictions.withColumn("prediction", round(predictions["prediction"]).cast(DoubleType()))\
+    .select("prediction", "quality")
+predictionAndLabels.show(5)
+
+evaluatorMulti = MulticlassClassificationEvaluator(labelCol="quality", predictionCol="prediction")
+
+f1 = evaluatorMulti.evaluate(predictionAndLabels, {evaluatorMulti.metricName: "f1"})
+
+print(f1)
+
+
