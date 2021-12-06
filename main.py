@@ -4,8 +4,7 @@ from pyspark.ml.regression import RandomForestRegressor
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import round
 from pyspark.sql.types import StructType, StructField, DoubleType, IntegerType
-from pyspark.ml.evaluation import MulticlassClassificationEvaluator
-
+from pyspark.ml.evaluation import MulticlassClassificationEvaluator, RegressionEvaluator
 
 spark = SparkSession.builder.master("local[1]") \
     .appName("cch2") \
@@ -43,14 +42,19 @@ lrModel = lr.fit(train)
 # print("Intercept: %s" % str(lrModel.intercept))
 
 predictions = lrModel.transform(test)
-predictionAndLabels=predictions.withColumn("prediction", round(predictions["prediction"]).cast(DoubleType()))\
-    .select("prediction", "quality")
+predictionAndLabels=predictions.select("prediction", "quality")
 predictionAndLabels.show(5)
 
-evaluatorMulti = MulticlassClassificationEvaluator(labelCol="quality", predictionCol="prediction")
+evaluator = RegressionEvaluator(
+    labelCol="quality", predictionCol="prediction", metricName="rmse")
 
-f1 = evaluatorMulti.evaluate(predictionAndLabels, {evaluatorMulti.metricName: "f1"})
+rmse = evaluator.evaluate(predictions)
+print("Root Mean Squared Error (RMSE) on test data = %g" % rmse)
 
-print(f1)
+# evaluatorMulti = MulticlassClassificationEvaluator(labelCol="quality", predictionCol="prediction")
+#
+# f1 = evaluatorMulti.evaluate(predictionAndLabels, {evaluatorMulti.metricName: "f1"})
+#
+# print(f1)
 
 
