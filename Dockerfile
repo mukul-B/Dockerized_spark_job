@@ -19,4 +19,7 @@ RUN pip install pyspark
 RUN pip install numpy
 ADD winequality-white.csv .
 
-CMD ["python", "./main.py"]
+#CMD ["python", "./main.py"]
+COPY ./entry_point.sh /
+RUN chmod 775 /entry_point.sh
+ENTRYPOINT ["/entry_point.sh"]
