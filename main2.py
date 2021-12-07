@@ -7,7 +7,7 @@ from pyspark.sql.types import StructType, StructField, DoubleType, IntegerType
 
 
 def Linear_Regression(train):
-    lr = LinearRegression(maxIter=10)
+    lr = LinearRegression(maxIter=10,regParam=0.3,elasticNetParam=0.78)
 
     paramGrid = ParamGridBuilder() \
         .addGrid(lr.regParam, [0.1, 0.01]) \
@@ -24,7 +24,7 @@ def Linear_Regression(train):
                                trainRatio=0.8)
 
     # Run TrainValidationSplit, and choose the best set of parameters.
-    lrModel = tvs.fit(train)
+    lrModel = lr.fit(train)
     return lrModel
 
 
